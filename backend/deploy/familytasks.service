@@ -1,0 +1,29 @@
+# Вариант без Docker: /etc/systemd/system/familytasks.service
+# sudo systemctl daemon-reload && sudo systemctl enable --now familytasks
+
+[Unit]
+Description=FamilyTasks API
+After=network.target postgresql.service
+
+[Service]
+Type=exec
+User=familytasks
+Group=familytasks
+WorkingDirectory=/srv/familytasks
+EnvironmentFile=/srv/familytasks/.env
+# --workers 1: лимитер попыток входа хранит счётчики в памяти процесса.
+# --proxy-headers: иначе request.client.host будет адресом nginx для всех.
+ExecStart=/srv/familytasks/.venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers
+Restart=always
+RestartSec=3
+
+# Минимальные привилегии
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/familytasks
+
+[Install]
+WantedBy=multi-user.target

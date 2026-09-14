@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    name: Сборка iOS
+    # macOS-раннер — единственное место, где существует iOS SDK.
+    # Минуты macOS списываются с коэффициентом x10, поэтому джоб один и короткий.
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Версия Xcode
+        run: xcodebuild -version
+
+      - name: Сборка приложения
+        working-directory: FamilyTasks.swiftpm
+        # CODE_SIGNING_ALLOWED=NO — нам нужна только компиляция,
+        # сертификаты на этом этапе не требуются.
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -scheme FamilyTasks \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+
+  backend:
+    name: Тесты бэкенда
+    # Linux-минуты идут 1:1, так что этот джоб практически бесплатный.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Зависимости
+        working-directory: backend
+        run: pip install -r requirements-dev.txt
+
+      - name: Линтер
+        working-directory: backend
+        run: ruff check .
+
+      - name: Тесты
+        working-directory: backend
+        run: pytest -q
+
+      - name: Миграции накатываются и откатываются
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///./ci.db
+        run: |
+          alembic upgrade head
+          alembic downgrade base

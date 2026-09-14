@@ -1,0 +1,20 @@
+[project]
+name = "familytasks-api"
+version = "0.1.0"
+description = "REST API для iOS-приложения семейных задач"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+# Файлы миграций генерирует Alembic — форматировать их под свой стиль
+# бессмысленно: следующий autogenerate всё вернёт обратно.
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

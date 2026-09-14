@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: familytasks
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
+      POSTGRES_DB: familytasks
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U familytasks"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # Наружу порт не открываем: до базы ходит только api по внутренней сети.
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://familytasks:${POSTGRES_PASSWORD}@db:5432/familytasks
+      SECRET_KEY: ${SECRET_KEY:?задайте SECRET_KEY в .env}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+    ports:
+      # Только на localhost — снаружи доступ идёт через nginx с TLS.
+      - "127.0.0.1:8000:8000"
+
+volumes:
+  pgdata:

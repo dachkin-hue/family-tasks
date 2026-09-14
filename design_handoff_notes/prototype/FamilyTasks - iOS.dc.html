@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="_ds/organic-4ecc949f-c50c-496c-b38c-0ba60336be08/styles.css"><script src="_ds/organic-4ecc949f-c50c-496c-b38c-0ba60336be08/_ds_bundle.js"></script><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap"><style>body{margin:0;background:#efe6d4;font-family:Figtree,system-ui,sans-serif}a{color:#8c491a}a:hover{color:#c67139}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#201e1d;color:#f5ead8;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 Figtree,system-ui,sans-serif;color:#201e1d}.dv-opts{display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(32,30,29,.1);color:#201e1d;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11.5px/1.4 Figtree,system-ui,sans-serif;color:rgba(32,30,29,.6);max-width:402px}.dv-opt:target .dv-oid{background:#c67139;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.6 Figtree,system-ui,sans-serif;color:rgba(32,30,29,.55)}</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">FamilyTasks · iOS-клиент в системе Organic — по коду из FamilyTasks.swiftpm</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Клиент FamilyTasks в системе Organic: задачи (фильтры Все / Мои / Сегодня / Готово, поиск, статусы todo → in_progress → done, важность, исполнитель, редактор, удаление), новая вкладка «Заметки» на эндпоинте /notes, Семья и Профиль. Данные и правила — из MockBackend, TaskListViewModel и схем бэкенда.</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="position:relative;height:100%;display:flex;flex-direction:column;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif;overflow:hidden">
+
+<div style="flex:1;overflow:auto">
+
+<sc-if value="{{ isTasks }}" hint-placeholder-val="{{ true }}">
+<div style="padding:60px 20px 0">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<span style="font:600 12px Figtree,sans-serif;letter-spacing:0.09em;text-transform:uppercase;color:#82796a">FamilyTasks</span>
+<div style="display:flex;background:#ebddc5;border-radius:999px;padding:3px;gap:2px">
+<sc-for list="{{ viewers }}" as="v" hint-placeholder-count="3">
+<button onClick="{{ v.onPick }}" style="border:none;border-radius:999px;padding:6px 11px;font:700 12px Figtree,sans-serif;cursor:pointer;background:{{ v.bg }};color:{{ v.fg }}">{{ v.name }}</button>
+</sc-for>
+</div>
+</div>
+<h1 style="font-family:Caprasimo,serif;font-weight:400;font-size:38px;line-height:1.05;margin:0 0 4px">Задачи</h1>
+<div style="font:600 13.5px Figtree,sans-serif;color:#82796a;margin-bottom:16px">{{ openSummary }}</div>
+<div style="display:flex;align-items:center;gap:10px;background:#fffdf8;border:1.5px solid #dcd3c4;border-radius:999px;padding:11px 16px;margin-bottom:14px">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a19786" stroke-width="2.75" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+<input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Поиск по задачам" style="flex:1;border:none;background:transparent;outline:none;font:400 15px Figtree,sans-serif;color:#201e1d">
+</div>
+<div style="display:flex;background:#ebddc5;border-radius:999px;padding:4px;gap:3px;margin-bottom:18px">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+<button onClick="{{ f.onPick }}" style="flex:1;border:none;border-radius:999px;padding:9px 4px;font:700 13px Figtree,sans-serif;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }};box-shadow:{{ f.shadow }}">{{ f.label }}</button>
+</sc-for>
+</div>
+</div>
+
+<sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:10px;padding:0 20px">
+<sc-for list="{{ rows }}" as="t" hint-placeholder-count="4">
+<div style="display:flex;align-items:flex-start;gap:13px;background:#fffdf8;border-radius:24px;padding:15px 16px;box-shadow:0 1px 2px rgba(46,43,37,0.14)">
+<button onClick="{{ t.onToggle }}" style="flex:none;margin-top:1px;width:28px;height:28px;padding:0;border-radius:999px;border:2.75px solid {{ t.ring }};background:{{ t.fill }};cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fffdf8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ t.checkOp }}"><path d="M4 12.5 9.5 18 20 6.5"></path></svg>
+</button>
+<button onClick="{{ t.onOpen }}" style="flex:1;min-width:0;text-align:left;border:none;background:transparent;padding:0;cursor:pointer;font-family:Figtree,sans-serif">
+<div style="font:700 16px Figtree,sans-serif;line-height:1.3;color:#201e1d;opacity:{{ t.textOp }};text-decoration:{{ t.strike }}">{{ t.title }}</div>
+<sc-if value="{{ t.notes }}" hint-placeholder-val="{{ false }}"><div style="font:400 13.5px Figtree,sans-serif;color:#82796a;margin-top:3px;line-height:1.4">{{ t.notes }}</div></sc-if>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
+<sc-if value="{{ t.due }}" hint-placeholder-val="{{ true }}"><span style="background:{{ t.dueBg }};color:{{ t.dueFg }};border-radius:999px;padding:4px 10px;font:700 11.5px Figtree,sans-serif">{{ t.due }}</span></sc-if>
+<sc-if value="{{ t.prLabel }}" hint-placeholder-val="{{ false }}"><span style="background:{{ t.prBg }};color:{{ t.prFg }};border-radius:999px;padding:4px 10px;font:700 11.5px Figtree,sans-serif">{{ t.prLabel }}</span></sc-if>
+<sc-if value="{{ t.inProgress }}" hint-placeholder-val="{{ false }}"><span style="background:#e1eecc;color:#56633f;border-radius:999px;padding:4px 10px;font:700 11.5px Figtree,sans-serif">В работе</span></sc-if>
+</div>
+</button>
+<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:8px">
+<div style="width:32px;height:32px;border-radius:999px;background:{{ t.color }};color:#f9f4ed;display:flex;align-items:center;justify-content:center;font:700 13px Figtree,sans-serif">{{ t.initials }}</div>
+<button onClick="{{ t.onAdvance }}" title="Следующий статус" style="width:26px;height:26px;border:1.5px solid #e6dcc8;border-radius:999px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0" style-hover="background:#f0e8db"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#82796a" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"></path></svg></button>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="margin:10px 20px 0;background:#fffdf8;border-radius:28px;padding:36px 24px;text-align:center;box-shadow:0 1px 2px rgba(46,43,37,0.14)">
+<div style="width:64px;height:64px;border-radius:999px;background:#ebddc5;margin:0 auto 16px;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#82796a" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h4l1.5 3h5L16 13h4"></path><path d="M4 13 6.5 5h11L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"></path></svg></div>
+<div style="font-family:Caprasimo,serif;font-size:23px;margin-bottom:8px">{{ emptyTitle }}</div>
+<div style="font:400 14.5px Figtree,sans-serif;color:#645c50;line-height:1.5;max-width:250px;margin:0 auto">{{ emptyMessage }}</div>
+<sc-if value="{{ emptyCta }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ openCreate }}" style="margin-top:20px;border:none;background:#c67139;color:#fffdf8;border-radius:999px;padding:13px 22px;font:700 14.5px Figtree,sans-serif;cursor:pointer" style-hover="background:#b2622d">Новая задача</button>
+</sc-if>
+</div>
+</sc-if>
+
+<div style="height:130px"></div>
+</sc-if>
+
+<sc-if value="{{ isNotes }}" hint-placeholder-val="{{ false }}">
+<div style="padding:60px 20px 0">
+<h1 style="font-family:Caprasimo,serif;font-weight:400;font-size:38px;line-height:1.05;margin:0 0 4px">Заметки</h1>
+<div style="font:600 13.5px Figtree,sans-serif;color:#82796a;margin-bottom:16px">{{ notesSummary }}</div>
+<div style="display:flex;gap:9px;margin-bottom:18px">
+<input value="{{ quickNote }}" onChange="{{ onQuickNote }}" onKeyDown="{{ onQuickKey }}" placeholder="Записать одной строкой" style="flex:1;border:1.5px solid #dcd3c4;background:#fffdf8;border-radius:999px;padding:13px 17px;font:400 15px Figtree,sans-serif;color:#201e1d;outline:none" style-focus="border-color:#c67139">
+<button onClick="{{ addQuickNote }}" style="flex:none;width:48px;height:48px;border:none;border-radius:999px;background:#c67139;color:#fffdf8;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#b2622d"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<button onClick="{{ openNoteCreate }}" style="display:flex;align-items:center;gap:8px;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:9px 15px;font:700 13px Figtree,sans-serif;cursor:pointer;margin-bottom:18px" style-hover="background:#fffdf8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h9L19 8v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"></path><path d="M14.5 3.5V8H19"></path></svg>Заметка с текстом</button>
+<sc-if value="{{ canSeeHidden }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:8px;margin-bottom:18px">
+<sc-for list="{{ noteFilters }}" as="nf" hint-placeholder-count="3">
+<button onClick="{{ nf.onPick }}" style="border:1.5px solid {{ nf.border }};background:{{ nf.bg }};color:{{ nf.fg }};border-radius:999px;padding:8px 14px;font:700 13px Figtree,sans-serif;cursor:pointer">{{ nf.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px;padding:0 20px">
+<sc-for list="{{ noteList }}" as="n" hint-placeholder-count="4">
+<button onClick="{{ n.onOpen }}" style="text-align:left;display:block;width:100%;border:none;background:{{ n.bg }};border-radius:26px;padding:18px 19px;box-shadow:0 1px 2px rgba(46,43,37,0.14);cursor:pointer;font-family:Figtree,sans-serif" style-hover="box-shadow:0 6px 18px rgba(46,43,37,0.16)">
+<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:6px">
+<div style="flex:1;min-width:0;font-family:Caprasimo,serif;font-weight:400;font-size:19px;line-height:1.2;color:#201e1d">{{ n.title }}</div>
+<sc-if value="{{ n.locked }}" hint-placeholder-val="{{ false }}">
+<span style="flex:none;display:inline-flex;align-items:center;gap:5px;background:#ffe1d0;color:#8c491a;border-radius:999px;padding:4px 10px;font:700 11px Figtree,sans-serif"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="3"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg>Родители</span>
+</sc-if>
+</div>
+<sc-if value="{{ n.body }}" hint-placeholder-val="{{ true }}">
+<div style="font:400 14.5px Figtree,sans-serif;color:#645c50;line-height:1.5;white-space:pre-line">{{ n.body }}</div>
+</sc-if>
+<div style="display:flex;align-items:center;gap:8px;margin-top:14px">
+<span style="width:24px;height:24px;border-radius:999px;background:{{ n.color }};color:#f9f4ed;display:inline-flex;align-items:center;justify-content:center;font:700 10.5px Figtree,sans-serif">{{ n.initials }}</span>
+<span style="font:600 12.5px Figtree,sans-serif;color:#82796a">{{ n.meta }}</span>
+</div>
+</button>
+</sc-for>
+</div>
+
+<sc-if value="{{ notesEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="margin:0 20px;background:#fffdf8;border-radius:28px;padding:36px 24px;text-align:center;box-shadow:0 1px 2px rgba(46,43,37,0.14)">
+<div style="width:56px;height:56px;border-radius:999px;background:#ebddc5;margin:0 auto 16px;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#82796a" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h9L19 8v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"></path><path d="M14.5 3.5V8H19"></path></svg></div>
+<div style="font-family:Caprasimo,serif;font-size:21px">Заметок нет</div>
+<div style="font:400 14px Figtree,sans-serif;color:#645c50;line-height:1.5;max-width:250px;margin:8px auto 0">Запишите то, у чего нет срока и исполнителя — список покупок, размеры, телефоны.</div>
+</div>
+</sc-if>
+
+<div style="padding:18px 20px 0;font:400 12px Figtree,sans-serif;color:#a19786;line-height:1.55">Недавно изменённые сверху — как отдаёт GET /notes. Общую заметку может править любой, автор не переписывается; заметки «Родители» детям не видны.</div>
+<div style="height:130px"></div>
+</sc-if>
+
+<sc-if value="{{ isFamily }}" hint-placeholder-val="{{ false }}">
+<div style="padding:60px 20px 0">
+<h1 style="font-family:Caprasimo,serif;font-weight:400;font-size:38px;line-height:1.05;margin:0 0 6px">Семья</h1>
+<div style="font:600 13.5px Figtree,sans-serif;color:#82796a;margin-bottom:20px">Три участника · задачи общие</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;padding:0 20px">
+<sc-for list="{{ family }}" as="m" hint-placeholder-count="3">
+<div style="background:#fffdf8;border-radius:26px;padding:16px;box-shadow:0 1px 2px rgba(46,43,37,0.14);display:flex;gap:14px;align-items:center">
+<div style="width:52px;height:52px;border-radius:999px;background:{{ m.color }};color:#f9f4ed;display:flex;align-items:center;justify-content:center;font:700 19px Figtree,sans-serif;flex:none">{{ m.initials }}</div>
+<div style="flex:1;min-width:0">
+<div style="font:700 16.5px Figtree,sans-serif">{{ m.name }}</div>
+<div style="font:400 12.5px Figtree,sans-serif;color:#82796a;margin-top:2px">{{ m.email }}</div>
+<div style="font:600 12.5px Figtree,sans-serif;color:#56633f;margin-top:6px">{{ m.stat }}</div>
+</div>
+<span style="flex:none;font:700 11.5px Figtree,sans-serif;color:{{ m.tagFg }};background:{{ m.tagBg }};border-radius:999px;padding:5px 11px">{{ m.role }}</span>
+</div>
+</sc-for>
+</div>
+<div style="padding:18px 20px 0">
+<button style="width:100%;border:1.5px dashed #c0b6a5;background:transparent;color:#645c50;border-radius:26px;padding:17px;font:700 14.5px Figtree,sans-serif;cursor:pointer" style-hover="background:#fffdf8">Пригласить по коду — экрана в клиенте пока нет</button>
+</div>
+<div style="height:130px"></div>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<div style="padding:60px 20px 0">
+<h1 style="font-family:Caprasimo,serif;font-weight:400;font-size:38px;line-height:1.05;margin:0 0 20px">Профиль</h1>
+<div style="background:#fffdf8;border-radius:28px;padding:22px;box-shadow:0 1px 2px rgba(46,43,37,0.14);display:flex;align-items:center;gap:16px;margin-bottom:16px">
+<div style="width:64px;height:64px;border-radius:999px;background:{{ me.color }};color:#f9f4ed;display:flex;align-items:center;justify-content:center;font:700 23px Figtree,sans-serif">{{ me.initials }}</div>
+<div><div style="font-family:Caprasimo,serif;font-size:24px;line-height:1.1">{{ me.name }}</div><div style="font:400 13.5px Figtree,sans-serif;color:#82796a;margin-top:4px">{{ me.email }}</div><div style="font:700 11.5px Figtree,sans-serif;color:#56633f;background:#e1eecc;border-radius:999px;padding:4px 10px;display:inline-block;margin-top:8px">{{ me.role }}</div></div>
+</div>
+<div style="font:700 12px Figtree,sans-serif;letter-spacing:0.07em;text-transform:uppercase;color:#82796a;margin-bottom:9px">Подключение</div>
+<div style="background:#fffdf8;border-radius:26px;box-shadow:0 1px 2px rgba(46,43,37,0.14);overflow:hidden;margin-bottom:16px">
+<div style="display:flex;justify-content:space-between;padding:15px 18px;font:600 14.5px Figtree,sans-serif"><span>Режим</span><span style="color:#82796a">Локальные данные</span></div>
+</div>
+<button onClick="{{ showError }}" style="width:100%;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:15px;font:700 14.5px Figtree,sans-serif;cursor:pointer;margin-bottom:10px" style-hover="background:#fffdf8">Показать ошибку загрузки</button>
+<button style="width:100%;border:none;background:#ffe1d0;color:#8c491a;border-radius:999px;padding:15px;font:700 14.5px Figtree,sans-serif;cursor:pointer" style-hover="background:#ffc6a5">Выйти</button>
+</div>
+<div style="height:130px"></div>
+</sc-if>
+
+</div>
+
+<div style="flex:none;background:#fffdf8;border-top:1px solid #e6dcc8;padding:9px 10px 26px;display:flex">
+<sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+<button onClick="{{ tb.onPick }}" style="flex:1;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0;color:{{ tb.color }}">
+<span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">{{ tb.icon }}</span>
+<span style="font:700 11px Figtree,sans-serif">{{ tb.label }}</span>
+</button>
+</sc-for>
+</div>
+
+<sc-if value="{{ showFab }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ openCreate }}" style="position:absolute;right:18px;bottom:104px;width:60px;height:60px;border:none;border-radius:999px;background:#c67139;color:#fffdf8;box-shadow:0 12px 32px rgba(46,43,37,0.28);cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#b2622d"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:16px;right:16px;bottom:180px;background:#2e2b25;color:#f5ead8;border-radius:20px;padding:13px 17px;font:600 13.5px Figtree,sans-serif;box-shadow:0 12px 32px rgba(46,43,37,0.3);z-index:80">{{ toast }}</div>
+</sc-if>
+
+<sc-if value="{{ alertOn }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(32,30,29,0.42);display:flex;align-items:center;justify-content:center;padding:32px;z-index:90">
+<div style="background:#f9f4ed;border-radius:28px;padding:24px;max-width:300px;box-shadow:0 12px 32px rgba(46,43,37,0.3)">
+<div style="font-family:Caprasimo,serif;font-size:21px;margin-bottom:8px">Нет связи</div>
+<div style="font:400 14px Figtree,sans-serif;color:#645c50;line-height:1.5;margin-bottom:18px">Нет подключения к интернету.</div>
+<button onClick="{{ closeAlert }}" style="width:100%;border:none;background:#c67139;color:#fffdf8;border-radius:999px;padding:13px;font:700 14.5px Figtree,sans-serif;cursor:pointer;margin-bottom:10px" style-hover="background:#b2622d">Повторить</button>
+<button onClick="{{ closeAlert }}" style="width:100%;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:13px;font:700 14.5px Figtree,sans-serif;cursor:pointer">Закрыть</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(32,30,29,0.42);display:flex;align-items:flex-end;z-index:85">
+<div style="width:100%;max-height:88%;overflow:auto;background:#f5ead8;border-radius:32px 32px 0 0;padding:12px 20px 34px">
+<div style="width:44px;height:5px;border-radius:999px;background:#dcd3c4;margin:0 auto 18px"></div>
+
+<sc-if value="{{ isEditor }}" hint-placeholder-val="{{ true }}">
+<div style="font-family:Caprasimo,serif;font-size:26px;margin-bottom:16px">{{ editorTitle }}</div>
+<input value="{{ dTitle }}" onChange="{{ onTitle }}" placeholder="Что нужно сделать" style="width:100%;border:1.5px solid #dcd3c4;background:#fffdf8;border-radius:22px;padding:15px 17px;font:600 16px Figtree,sans-serif;color:#201e1d;outline:none;margin-bottom:10px" style-focus="border-color:#c67139">
+<input value="{{ dNotes }}" onChange="{{ onNotes }}" placeholder="Заметки" style="width:100%;border:1.5px solid #dcd3c4;background:#fffdf8;border-radius:22px;padding:14px 17px;font:400 15px Figtree,sans-serif;color:#201e1d;outline:none;margin-bottom:20px" style-focus="border-color:#c67139">
+
+<div style="font:700 12px Figtree,sans-serif;letter-spacing:0.07em;text-transform:uppercase;color:#82796a;margin-bottom:9px">Срок</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+<sc-for list="{{ dueOpts }}" as="d" hint-placeholder-count="4">
+<button onClick="{{ d.onPick }}" style="border:1.5px solid {{ d.border }};background:{{ d.bg }};color:{{ d.fg }};border-radius:999px;padding:9px 15px;font:700 13.5px Figtree,sans-serif;cursor:pointer">{{ d.label }}</button>
+</sc-for>
+</div>
+
+<div style="font:700 12px Figtree,sans-serif;letter-spacing:0.07em;text-transform:uppercase;color:#82796a;margin-bottom:9px">Кто делает</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+<sc-for list="{{ whoOpts }}" as="w" hint-placeholder-count="4">
+<button onClick="{{ w.onPick }}" style="border:1.5px solid {{ w.border }};background:{{ w.bg }};color:{{ w.fg }};border-radius:999px;padding:9px 15px;font:700 13.5px Figtree,sans-serif;cursor:pointer">{{ w.label }}</button>
+</sc-for>
+</div>
+
+<div style="font:700 12px Figtree,sans-serif;letter-spacing:0.07em;text-transform:uppercase;color:#82796a;margin-bottom:9px">Важность</div>
+<div style="display:flex;background:#ebddc5;border-radius:999px;padding:4px;gap:3px;margin-bottom:20px">
+<sc-for list="{{ prOpts }}" as="p" hint-placeholder-count="3">
+<button onClick="{{ p.onPick }}" style="flex:1;border:none;border-radius:999px;padding:10px 4px;font:700 13px Figtree,sans-serif;cursor:pointer;background:{{ p.bg }};color:{{ p.fg }};box-shadow:{{ p.shadow }}">{{ p.label }}</button>
+</sc-for>
+</div>
+
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<div style="font:700 12px Figtree,sans-serif;letter-spacing:0.07em;text-transform:uppercase;color:#82796a;margin-bottom:9px">Статус</div>
+<div style="display:flex;background:#ebddc5;border-radius:999px;padding:4px;gap:3px;margin-bottom:20px">
+<sc-for list="{{ stOpts }}" as="o" hint-placeholder-count="3">
+<button onClick="{{ o.onPick }}" style="flex:1;border:none;border-radius:999px;padding:10px 4px;font:700 12.5px Figtree,sans-serif;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.shadow }}">{{ o.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display:flex;gap:10px">
+<button onClick="{{ closeSheet }}" style="flex:none;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:15px 22px;font:700 15px Figtree,sans-serif;cursor:pointer">Отмена</button>
+<button onClick="{{ save }}" style="flex:1;border:none;background:{{ saveBg }};color:#fffdf8;border-radius:999px;padding:15px;font:700 15.5px Figtree,sans-serif;cursor:{{ saveCursor }};opacity:{{ saveOp }}">Сохранить</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
+<span style="background:{{ sel.stBg }};color:{{ sel.stFg }};border-radius:999px;padding:5px 12px;font:700 12px Figtree,sans-serif">{{ sel.stLabel }}</span>
+<sc-if value="{{ sel.prLabel }}" hint-placeholder-val="{{ false }}"><span style="background:{{ sel.prBg }};color:{{ sel.prFg }};border-radius:999px;padding:5px 12px;font:700 12px Figtree,sans-serif">{{ sel.prLabel }}</span></sc-if>
+</div>
+<div style="font-family:Caprasimo,serif;font-size:27px;line-height:1.15;margin-bottom:8px">{{ sel.title }}</div>
+<sc-if value="{{ sel.notes }}" hint-placeholder-val="{{ false }}"><div style="font:400 15px Figtree,sans-serif;color:#645c50;line-height:1.5;margin-bottom:18px">{{ sel.notes }}</div></sc-if>
+<div style="background:#fffdf8;border-radius:26px;box-shadow:0 1px 2px rgba(46,43,37,0.14);overflow:hidden;margin-bottom:18px">
+<div style="display:flex;justify-content:space-between;padding:14px 17px;font:600 14.5px Figtree,sans-serif"><span style="color:#82796a">Срок</span><span style="color:{{ sel.dueFg }}">{{ sel.dueFull }}</span></div>
+<div style="display:flex;justify-content:space-between;padding:14px 17px;border-top:1px solid #f0e8db;font:600 14.5px Figtree,sans-serif"><span style="color:#82796a">Исполнитель</span><span>{{ sel.whoName }}</span></div>
+<div style="display:flex;justify-content:space-between;padding:14px 17px;border-top:1px solid #f0e8db;font:600 14.5px Figtree,sans-serif"><span style="color:#82796a">Поставил</span><span>{{ sel.byName }}</span></div>
+<div style="display:flex;justify-content:space-between;padding:14px 17px;border-top:1px solid #f0e8db;font:600 14.5px Figtree,sans-serif"><span style="color:#82796a">Обновлено</span><span style="color:#82796a">{{ sel.updated }}</span></div>
+</div>
+<div style="display:flex;gap:10px;margin-bottom:10px">
+<button onClick="{{ sel.onToggle }}" style="flex:1;border:none;background:#7a8a5e;color:#f9f4ed;border-radius:999px;padding:15px;font:700 15px Figtree,sans-serif;cursor:pointer" style-hover="background:#728157">{{ sel.toggleLabel }}</button>
+<button onClick="{{ openEdit }}" style="flex:none;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:15px 22px;font:700 15px Figtree,sans-serif;cursor:pointer" style-hover="background:#fffdf8">Изменить</button>
+</div>
+<div style="display:flex;gap:10px">
+<button onClick="{{ closeSheet }}" style="flex:1;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:15px;font:700 15px Figtree,sans-serif;cursor:pointer" style-hover="background:#fffdf8">Закрыть</button>
+<button onClick="{{ askDelete }}" style="flex:none;border:none;background:#ffe1d0;color:#8c491a;border-radius:999px;padding:15px 22px;font:700 15px Figtree,sans-serif;cursor:pointer" style-hover="background:#ffc6a5">Удалить</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isNoteEditor }}" hint-placeholder-val="{{ false }}">
+<div style="font-family:Caprasimo,serif;font-size:26px;margin-bottom:16px">{{ noteEditorTitle }}</div>
+<input value="{{ nTitle }}" onChange="{{ onNoteTitle }}" placeholder="Заголовок" style="width:100%;border:1.5px solid #dcd3c4;background:#fffdf8;border-radius:22px;padding:15px 17px;font:600 16px Figtree,sans-serif;color:#201e1d;outline:none;margin-bottom:10px" style-focus="border-color:#c67139">
+<textarea value="{{ nBody }}" onChange="{{ onNoteBody }}" rows="5" placeholder="Текст — можно оставить пустым" style="width:100%;box-sizing:border-box;border:1.5px solid #dcd3c4;background:#fffdf8;border-radius:22px;padding:14px 17px;font:400 15px/1.5 Figtree,sans-serif;color:#201e1d;outline:none;resize:none;margin-bottom:20px" style-focus="border-color:#c67139"></textarea>
+<div style="font:700 12px Figtree,sans-serif;letter-spacing:0.07em;text-transform:uppercase;color:#82796a;margin-bottom:9px">Кому видна</div>
+<div style="display:flex;background:#ebddc5;border-radius:999px;padding:4px;gap:3px;margin-bottom:14px">
+<sc-for list="{{ visOpts }}" as="v" hint-placeholder-count="2">
+<button onClick="{{ v.onPick }}" style="flex:1;border:none;border-radius:999px;padding:10px 4px;font:700 13px Figtree,sans-serif;cursor:pointer;background:{{ v.bg }};color:{{ v.fg }};box-shadow:{{ v.shadow }}">{{ v.label }}</button>
+</sc-for>
+</div>
+<div style="font:400 13px Figtree,sans-serif;color:#82796a;line-height:1.5;margin-bottom:20px">{{ visHint }}</div>
+<div style="display:flex;gap:10px;margin-bottom:10px">
+<button onClick="{{ closeSheet }}" style="flex:none;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:15px 22px;font:700 15px Figtree,sans-serif;cursor:pointer">Отмена</button>
+<button onClick="{{ saveNote }}" style="flex:1;border:none;background:{{ noteSaveBg }};color:#fffdf8;border-radius:999px;padding:15px;font:700 15.5px Figtree,sans-serif;cursor:{{ noteSaveCursor }};opacity:{{ noteSaveOp }}">Сохранить</button>
+</div>
+<sc-if value="{{ noteEditing }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ deleteNote }}" style="width:100%;border:none;background:#ffe1d0;color:#8c491a;border-radius:999px;padding:15px;font:700 15px Figtree,sans-serif;cursor:pointer" style-hover="background:#ffc6a5">Удалить заметку</button>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isConfirm }}" hint-placeholder-val="{{ false }}">
+<div style="font-family:Caprasimo,serif;font-size:24px;margin-bottom:8px">Удалить задачу?</div>
+<div style="font:400 14.5px Figtree,sans-serif;color:#645c50;line-height:1.5;margin-bottom:20px">Задача исчезнет у всех членов семьи.</div>
+<button onClick="{{ confirmDelete }}" style="width:100%;border:none;background:#8c491a;color:#fffdf8;border-radius:999px;padding:15px;font:700 15px Figtree,sans-serif;cursor:pointer;margin-bottom:10px">Удалить</button>
+<button onClick="{{ backToDetail }}" style="width:100%;border:1.5px solid #dcd3c4;background:transparent;color:#645c50;border-radius:999px;padding:15px;font:700 15px Figtree,sans-serif;cursor:pointer">Отмена</button>
+</sc-if>
+
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+
+</div>
+<p class="dv-next">Дальше можно: «показать экран входа и приглашение в семью» · «тёмная тема» · «вкладка Сегодня как полоса времени» · «собрать SwiftUI-разметку вкладки Заметки»</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:980}}">
+class Component extends DCLogic {
+  members = [
+    { id: 'u1', name: 'Александр', email: 'dad@example.com', role: 'Родитель', initials: 'А', color: '#7a8a5e' },
+    { id: 'u2', name: 'Мария', email: 'mom@example.com', role: 'Родитель', initials: 'М', color: '#c67139' },
+    { id: 'u3', name: 'Соня', email: 'sonya@example.com', role: 'Ребёнок', initials: 'С', color: '#8fa073' },
+  ];
+  seed = [
+    { id: 1, title: 'Забрать Соню с тренировки', notes: 'Секция заканчивается в 18:30, вход со двора.', due: 'Сегодня, 18:00', dueFull: '13 сент., 18:00', today: true, overdue: false, priority: 'high', status: 'todo', who: 'u1', by: 'u2', updated: 'Сегодня, 9:12' },
+    { id: 2, title: 'Купить продукты на неделю', notes: 'Молоко, хлеб, овощи, корм коту.', due: 'Сегодня, 20:00', dueFull: '13 сент., 20:00', today: true, overdue: false, priority: 'medium', status: 'inProgress', who: 'u2', by: 'u1', updated: 'Сегодня, 14:40' },
+    { id: 3, title: 'Сделать домашку по математике', notes: '', due: 'Завтра, 19:00', dueFull: '14 сент., 19:00', today: false, overdue: false, priority: 'high', status: 'todo', who: 'u3', by: 'u2', updated: 'Вчера, 20:05' },
+    { id: 4, title: 'Записать машину на ТО', notes: 'Сервис на Ленина, спросить про замену колодок.', due: '17 сент.', dueFull: '17 сент., 12:00', today: false, overdue: false, priority: 'low', status: 'todo', who: 'u1', by: 'u1', updated: '11 сент., 10:30' },
+    { id: 5, title: 'Вынести мусор', notes: '', due: 'Вчера, 20:00', dueFull: '12 сент., 20:00', today: false, overdue: true, priority: 'medium', status: 'todo', who: 'u3', by: 'u2', updated: 'Вчера, 8:00' },
+    { id: 6, title: 'Оплатить коммуналку', notes: '', due: 'Вчера', dueFull: '11 сент., 10:00', today: false, overdue: false, priority: 'medium', status: 'done', who: 'u2', by: 'u2', updated: 'Вчера, 11:20' },
+  ];
+  seedNotes = [
+    { id: 1, title: 'Что купить в «Метро»', body: 'Крупы, кофе в зёрнах, стиральный порошок.\nБольшую упаковку кошачьего корма.', visibility: 'family', author: 'u2', updated: 'Сегодня, 15:02', ts: 50 },
+    { id: 2, title: 'Размеры детей', body: 'Соня — обувь 37, куртка 152.\nШкольные брюки: рост 152, пояс 64.', visibility: 'family', author: 'u1', updated: 'Сегодня, 11:40', ts: 40 },
+    { id: 3, title: 'Подарок Соне на день рождения', body: 'Наушники или сертификат в книжный. Спросить у Иры, что она дарит.', visibility: 'parents', author: 'u2', updated: 'Вчера, 22:15', ts: 30 },
+    { id: 4, title: 'Телефон школы и секции', body: 'Школа, канцелярия — 8 (343) 000-11-22.\nТренер Игорь — 8 (912) 000-33-44.', visibility: 'family', author: 'u1', updated: '10 сент., 9:20', ts: 20 },
+    { id: 5, title: 'Позвонить в поликлинику', body: '', visibility: 'family', author: 'u3', updated: '9 сент., 18:05', ts: 10 },
+  ];
+  state = {
+    tab: 'tasks', viewer: 'u1', filter: 'all', query: '',
+    tasks: null, sheet: null, selId: null, toast: '', alert: false,
+    draft: null, nextId: 100,
+    notes: null, noteFilter: 'all', noteDraft: null, noteId: null, quickNote: '', nextNoteId: 200, noteTick: 100,
+  };
+
+  stMeta = {
+    todo: { label: 'К выполнению', bg: '#eee7db', fg: '#645c50' },
+    inProgress: { label: 'В работе', bg: '#e1eecc', fg: '#56633f' },
+    done: { label: 'Готово', bg: '#e1eecc', fg: '#56633f' },
+  };
+  prMeta = {
+    low: { label: 'Не срочно', bg: '#eee7db', fg: '#645c50' },
+    medium: { label: '', bg: '', fg: '' },
+    high: { label: 'Срочно', bg: '#ffe1d0', fg: '#8c491a' },
+  };
+
+  get list() { return this.state.tasks || this.seed; }
+  member(id) { return this.members.find(m => m.id === id) || { name: 'Не назначен', initials: '—', color: '#a19786' }; }
+  say(t) { clearTimeout(this._t); this.setState({ toast: t }); this._t = setTimeout(() => this.setState({ toast: '' }), 2500); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  patch(id, f) { this.setState(s => ({ tasks: (s.tasks || this.seed).map(t => (t.id === id ? { ...t, ...f } : t)) })); }
+  pill(active, wide) {
+    return active
+      ? { bg: '#fffdf8', fg: '#201e1d', border: '#c67139', shadow: '0 1px 2px rgba(46,43,37,0.14)' }
+      : { bg: wide ? 'transparent' : '#fffdf8', fg: '#645c50', border: '#dcd3c4', shadow: 'none' };
+  }
+
+  decorate = (t) => {
+    const m = this.member(t.who);
+    const st = this.stMeta[t.status];
+    const pr = this.prMeta[t.priority];
+    const done = t.status === 'done';
+    return {
+      ...t,
+      color: m.color, initials: m.initials, whoName: m.name, byName: this.member(t.by).name,
+      stLabel: st.label, stBg: st.bg, stFg: st.fg,
+      prLabel: pr.label, prBg: pr.bg, prFg: pr.fg,
+      inProgress: t.status === 'inProgress',
+      dueBg: t.overdue ? '#ffc6a5' : '#fff2eb', dueFg: t.overdue ? '#8c491a' : '#b2622d',
+      textOp: done ? 0.45 : 1, strike: done ? 'line-through' : 'none',
+      ring: done ? '#7a8a5e' : t.status === 'inProgress' ? '#c67139' : '#c0b6a5',
+      fill: done ? '#7a8a5e' : t.status === 'inProgress' ? 'linear-gradient(90deg,#c67139 50%,transparent 50%)' : 'transparent',
+      checkOp: done ? 1 : 0,
+      toggleLabel: done ? 'Вернуть в работу' : 'Отметить выполненной',
+      onToggle: () => { this.patch(t.id, { status: done ? 'todo' : 'done' }); this.say(done ? 'Вернули в работу' : 'Отмечено выполненной'); },
+      onAdvance: () => {
+        const next = t.status === 'todo' ? 'inProgress' : t.status === 'inProgress' ? 'done' : 'todo';
+        this.patch(t.id, { status: next });
+        this.say('Статус: ' + this.stMeta[next].label);
+      },
+      onOpen: () => this.setState({ sheet: 'detail', selId: t.id }),
+    };
+  };
+
+  icon(kind, color) {
+    const e = React.createElement;
+    const paths = {
+      tasks: ['M4 7h10M4 12h10M4 17h7', 'M17.5 6.5 19 8l2.5-2.5', 'M17.5 16.5 19 18l2.5-2.5'],
+      notes: ['M6 3.5h9L19 8v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z', 'M14.5 3.5V8H19', 'M8.5 12.5h7M8.5 16.5h4'],
+      family: ['M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7', 'M2.5 20c0-3.6 2.9-5.5 6.5-5.5s6.5 1.9 6.5 5.5', 'M16.5 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c2.2.6 3.5 2.4 3.5 5.2'],
+      profile: ['M12 11.5a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5', 'M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5', 'M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19'],
+    };
+    return e('svg', { width: 23, height: 23, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 2.6, strokeLinecap: 'round', strokeLinejoin: 'round' },
+      paths[kind].map((d, i) => e('path', { key: i, d })));
+  }
+
+  get noteItems() { return (this.state.notes || this.seedNotes).slice().sort((a, b) => b.ts - a.ts); }
+  plural(n, one, few, many) { const m = n % 100, d = n % 10; return n + ' ' + (m >= 11 && m <= 14 ? many : d === 1 ? one : d >= 2 && d <= 4 ? few : many); }
+  isChild(id) { return (this.members.find(m => m.id === id) || {}).role === 'Ребёнок'; }
+  touchNote(id, f) {
+    this.setState(s => ({
+      noteTick: s.noteTick + 1,
+      notes: (s.notes || this.seedNotes).map(n => (n.id === id ? { ...n, ...f, updated: 'Только что', ts: s.noteTick + 1 } : n)),
+    }));
+  }
+  addQuickNote = () => {
+    const title = this.state.quickNote.trim();
+    if (!title) { this.say('Заголовок обязателен'); return; }
+    this.setState(s => ({
+      notes: [{ id: s.nextNoteId, title, body: '', visibility: 'family', author: s.viewer, updated: 'Только что', ts: s.noteTick + 1 }, ...(s.notes || this.seedNotes)],
+      nextNoteId: s.nextNoteId + 1, noteTick: s.noteTick + 1, quickNote: '',
+    }));
+    this.say('Заметка добавлена');
+  };
+  openNoteCreate = () => this.setState({ sheet: 'note', noteId: null, noteDraft: { title: '', body: '', visibility: 'family' } });
+  openNote = (n) => this.setState({ sheet: 'note', noteId: n.id, noteDraft: { title: n.title, body: n.body, visibility: n.visibility } });
+  setNoteDraft = (f) => this.setState(s => ({ noteDraft: { ...s.noteDraft, ...f } }));
+  saveNote = () => {
+    const d = this.state.noteDraft;
+    if (!d.title.trim()) { this.say('Заголовок обязателен'); return; }
+    if (this.state.noteId) {
+      this.touchNote(this.state.noteId, { title: d.title.trim(), body: d.body.trim(), visibility: d.visibility });
+      this.setState({ sheet: null, noteId: null, noteDraft: null });
+      this.say('Заметка сохранена — автор остался прежним');
+      return;
+    }
+    this.setState(s => ({
+      notes: [{ id: s.nextNoteId, title: d.title.trim(), body: d.body.trim(), visibility: d.visibility, author: s.viewer, updated: 'Только что', ts: s.noteTick + 1 }, ...(s.notes || this.seedNotes)],
+      nextNoteId: s.nextNoteId + 1, noteTick: s.noteTick + 1, sheet: null, noteDraft: null,
+    }));
+    this.say('Заметка создана');
+  };
+  deleteNote = () => {
+    const id = this.state.noteId;
+    this.setState(s => ({ notes: (s.notes || this.seedNotes).filter(n => n.id !== id), sheet: null, noteId: null, noteDraft: null }));
+    this.say('Заметка удалена');
+  };
+
+  openCreate = () => this.setState({
+    sheet: 'editor',
+    selId: null,
+    draft: { title: '', notes: '', due: 'today', who: this.state.viewer, priority: 'medium', status: 'todo' },
+  });
+  openEdit = () => {
+    const t = this.list.find(x => x.id === this.state.selId);
+    this.setState({ sheet: 'editor', draft: { title: t.title, notes: t.notes, due: 'keep', who: t.who, priority: t.priority, status: t.status } });
+  };
+  closeSheet = () => this.setState({ sheet: null, selId: null, noteId: null, noteDraft: null });
+  setDraft = (f) => this.setState(s => ({ draft: { ...s.draft, ...f } }));
+
+  save = () => {
+    const d = this.state.draft;
+    if (!d.title.trim()) { this.say('Укажите, что нужно сделать'); return; }
+    const dues = {
+      today: { due: 'Сегодня, 19:00', dueFull: '13 сент., 19:00', today: true, overdue: false },
+      tomorrow: { due: 'Завтра, 19:00', dueFull: '14 сент., 19:00', today: false, overdue: false },
+      week: { due: '20 сент.', dueFull: '20 сент., 19:00', today: false, overdue: false },
+      none: { due: '', dueFull: 'Без срока', today: false, overdue: false },
+    };
+    if (this.state.selId) {
+      const keep = d.due === 'keep' ? {} : dues[d.due];
+      this.patch(this.state.selId, { title: d.title.trim(), notes: d.notes.trim(), who: d.who, priority: d.priority, status: d.status, updated: 'Только что', ...keep });
+      this.setState({ sheet: 'detail' });
+      this.say('Изменения сохранены');
+      return;
+    }
+    const t = { id: this.state.nextId, title: d.title.trim(), notes: d.notes.trim(), priority: d.priority, status: 'todo', who: d.who, by: this.state.viewer, updated: 'Только что', ...dues[d.due === 'keep' ? 'today' : d.due] };
+    this.setState(s => ({ tasks: [t, ...(s.tasks || this.seed)], nextId: s.nextId + 1, sheet: null, draft: null }));
+    this.say('Задача создана — она появится у всех');
+  };
+  confirmDelete = () => {
+    const id = this.state.selId;
+    this.setState(s => ({ tasks: (s.tasks || this.seed).filter(t => t.id !== id), sheet: null, selId: null }));
+    this.say('Задача удалена у всех');
+  };
+
+  renderVals() {
+    const s = this.state;
+    const q = s.query.trim().toLowerCase();
+    const all = this.list;
+    const open = all.filter(t => t.status !== 'done');
+
+    const rows = all.filter(t => {
+      const done = t.status === 'done';
+      const ok = s.filter === 'all' ? !done
+        : s.filter === 'mine' ? !done && t.who === s.viewer
+          : s.filter === 'today' ? !done && (t.today || t.overdue)
+            : done;
+      if (!ok) return false;
+      if (!q) return true;
+      return (t.title + ' ' + t.notes + ' ' + this.member(t.who).name).toLowerCase().includes(q);
+    }).map(this.decorate);
+
+    const emptyByFilter = {
+      all: 'Добавьте первую задачу — она появится у всех членов семьи.',
+      mine: 'На вас пока ничего не назначено.',
+      today: 'На сегодня дел не запланировано.',
+      done: 'Выполненных задач пока нет.',
+    };
+
+    const filters = [['all', 'Все'], ['mine', 'Мои'], ['today', 'Сегодня'], ['done', 'Готово']]
+      .map(([id, label]) => ({ label, onPick: () => this.setState({ filter: id }), ...this.pill(s.filter === id, true) }));
+
+    const tabs = [['tasks', 'Задачи'], ['notes', 'Заметки'], ['family', 'Семья'], ['profile', 'Профиль']].map(([id, label]) => {
+      const color = s.tab === id ? '#c67139' : '#a19786';
+      return { label, color, icon: this.icon(id, color), onPick: () => this.setState({ tab: id }) };
+    });
+
+    const child = this.isChild(s.viewer);
+    const visibleNotes = this.noteItems.filter(n => !(child && n.visibility === 'parents'));
+    const noteList = visibleNotes.filter(n => (
+      child || s.noteFilter === 'all' ? true : s.noteFilter === 'family' ? n.visibility === 'family' : n.visibility === 'parents'
+    )).map(n => {
+      const m = this.member(n.author);
+      return {
+        ...n, color: m.color, initials: m.initials,
+        locked: n.visibility === 'parents',
+        bg: n.visibility === 'parents' ? '#fff2eb' : '#fffdf8',
+        meta: m.name + ' · изменено ' + n.updated.toLowerCase(),
+        onOpen: () => this.openNote(n),
+      };
+    });
+    const noteFilters = [['all', 'Все'], ['family', 'Общие'], ['parents', 'Только родители']]
+      .map(([id, label]) => ({ label, onPick: () => this.setState({ noteFilter: id }), ...this.pill(s.noteFilter === id) }));
+    const nd = s.noteDraft;
+    const visOpts = nd ? [['family', 'Вся семья'], ['parents', 'Только родители']]
+      .map(([id, label]) => ({ label, onPick: () => this.setNoteDraft({ visibility: id }), ...this.pill(nd.visibility === id, true) })) : [];
+    const noteValid = !!(nd && nd.title.trim());
+
+    const family = this.members.map(m => {
+      const mine = all.filter(t => t.who === m.id);
+      return {
+        ...m,
+        stat: this.plural(mine.filter(t => t.status !== 'done').length, 'открытая', 'открытые', 'открытых') + ' · ' + mine.filter(t => t.status === 'done').length + ' готово',
+        tagBg: m.role === 'Родитель' ? '#ffe1d0' : '#e1eecc',
+        tagFg: m.role === 'Родитель' ? '#8c491a' : '#56633f',
+      };
+    });
+
+    const d = s.draft;
+    const sel = s.selId ? this.decorate(all.find(t => t.id === s.selId)) : null;
+    const dueOpts = d ? [['today', 'Сегодня 19:00'], ['tomorrow', 'Завтра 19:00'], ['week', 'Через неделю'], ['none', 'Без срока']]
+      .concat(s.selId ? [['keep', 'Не менять']] : [])
+      .map(([id, label]) => ({ label, onPick: () => this.setDraft({ due: id }), ...this.pill(d.due === id) })) : [];
+    const whoOpts = d ? this.members.map(m => ({ label: m.name, onPick: () => this.setDraft({ who: m.id }), ...this.pill(d.who === m.id) }))
+      .concat([{ label: 'Не назначен', onPick: () => this.setDraft({ who: null }), ...this.pill(d.who === null) }]) : [];
+    const prOpts = d ? ['low', 'medium', 'high'].map(k => ({ label: k === 'medium' ? 'Обычный' : this.prMeta[k].label, onPick: () => this.setDraft({ priority: k }), ...this.pill(d.priority === k, true) })) : [];
+    const stOpts = d ? ['todo', 'inProgress', 'done'].map(k => ({ label: this.stMeta[k].label, onPick: () => this.setDraft({ status: k }), ...this.pill(d.status === k, true) })) : [];
+    const valid = !!(d && d.title.trim());
+
+    return {
+      isTasks: s.tab === 'tasks', isNotes: s.tab === 'notes', isFamily: s.tab === 'family', isProfile: s.tab === 'profile',
+      showFab: s.tab === 'tasks',
+      notesSummary: this.plural(visibleNotes.length, 'заметка', 'заметки', 'заметок') + ' · ' + (child ? 'вам видны только общие' : this.plural(this.noteItems.filter(n => n.visibility === 'parents').length, 'скрыта от детей', 'скрыты от детей', 'скрыто от детей')),
+      canSeeHidden: !child,
+      noteFilters, noteList, notesEmpty: noteList.length === 0,
+      quickNote: s.quickNote,
+      onQuickNote: (e) => this.setState({ quickNote: e.target.value }),
+      onQuickKey: (e) => { if (e.key === 'Enter') this.addQuickNote(); },
+      addQuickNote: this.addQuickNote,
+      isNoteEditor: s.sheet === 'note', noteEditing: !!s.noteId,
+      noteEditorTitle: s.noteId ? 'Заметка' : 'Новая заметка',
+      nTitle: nd ? nd.title : '', nBody: nd ? nd.body : '',
+      onNoteTitle: (e) => this.setNoteDraft({ title: e.target.value }),
+      onNoteBody: (e) => this.setNoteDraft({ body: e.target.value }),
+      visOpts,
+      visHint: nd && nd.visibility === 'parents'
+        ? 'Дети не увидят её в списке и не смогут открыть по ссылке.'
+        : 'Общую заметку может дополнить любой член семьи; автор остаётся прежним.',
+      noteSaveBg: noteValid ? '#c67139' : '#c0b6a5', noteSaveOp: noteValid ? 1 : 0.6, noteSaveCursor: noteValid ? 'pointer' : 'not-allowed',
+      saveNote: this.saveNote, deleteNote: this.deleteNote,
+      viewers: this.members.map(m => ({
+        name: m.name.length > 8 ? m.name.slice(0, 4) + '.' : m.name,
+        onPick: () => this.setState({ viewer: m.id }),
+        bg: s.viewer === m.id ? '#fffdf8' : 'transparent',
+        fg: s.viewer === m.id ? '#201e1d' : '#82796a',
+      })),
+      openSummary: this.plural(open.length, 'открытая', 'открытые', 'открытых') + ' · ' + this.plural(all.filter(t => t.overdue).length, 'просрочена', 'просрочены', 'просрочено') + ' · вы: ' + this.member(s.viewer).name,
+      query: s.query, onQuery: (e) => this.setState({ query: e.target.value }),
+      filters, rows, hasRows: rows.length > 0, isEmpty: rows.length === 0,
+      emptyTitle: q ? 'Ничего не найдено' : 'Задач нет',
+      emptyMessage: q ? 'Попробуйте изменить запрос.' : emptyByFilter[s.filter],
+      emptyCta: !q && s.filter === 'all',
+      tabs, family, me: { ...this.member(s.viewer), role: this.members.find(m => m.id === s.viewer).role },
+      toast: s.toast, alertOn: s.alert,
+      showError: () => this.setState({ alert: true }), closeAlert: () => this.setState({ alert: false }),
+      sheetOpen: !!s.sheet, isEditor: s.sheet === 'editor', isDetail: s.sheet === 'detail', isConfirm: s.sheet === 'confirm',
+      editorTitle: s.selId ? 'Изменить задачу' : 'Новая задача', editing: !!s.selId,
+      dTitle: d ? d.title : '', dNotes: d ? d.notes : '',
+      onTitle: (e) => this.setDraft({ title: e.target.value }),
+      onNotes: (e) => this.setDraft({ notes: e.target.value }),
+      dueOpts, whoOpts, prOpts, stOpts,
+      saveBg: valid ? '#c67139' : '#c0b6a5', saveOp: valid ? 1 : 0.6, saveCursor: valid ? 'pointer' : 'not-allowed',
+      save: this.save, closeSheet: this.closeSheet, openEdit: this.openEdit,
+      openCreate: this.openCreate, openNoteCreate: this.openNoteCreate,
+      askDelete: () => this.setState({ sheet: 'confirm' }), backToDetail: () => this.setState({ sheet: 'detail' }),
+      confirmDelete: this.confirmDelete, sel,
+    };
+  }
+}
+</script>
+</body>
+</html>
