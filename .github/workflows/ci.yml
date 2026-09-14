@@ -23,12 +23,14 @@ jobs:
         working-directory: FamilyTasks.swiftpm
         # CODE_SIGNING_ALLOWED=NO — нам нужна только компиляция,
         # сертификаты на этом этапе не требуются.
+        # destination намеренно generic: набор симуляторов на раннере меняется
+        # (сейчас там iOS 26 и iPhone Air), и привязка к модели уже ломала сборку.
         # derivedDataPath задан, чтобы следующий шаг нашёл собранный .app.
         run: |
           set -o pipefail
           xcodebuild build \
             -scheme FamilyTasks \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath dd \
             CODE_SIGNING_ALLOWED=NO
 
@@ -45,8 +47,18 @@ jobs:
           BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
           echo "Bundle id: $BUNDLE_ID"
 
-          UDID=$(xcrun simctl list devices available --json \
-            | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for v in d.values() for x in v if x['name']=='iPhone 16'))")
+          # Модель не фиксируем: набор симуляторов на раннере со временем меняется.
+          # Берём первый доступный iPhone и запоминаем его имя для названия артефакта.
+          read UDID DEVICE < <(xcrun simctl list devices available --json | python3 -c "
+import json, sys
+devices = json.load(sys.stdin)['devices']
+phones = [d for runtime in devices.values() for d in runtime if d['name'].startswith('iPhone')]
+if not phones:
+    sys.exit('Симуляторов iPhone на раннере не нашлось')
+print(phones[0]['udid'], phones[0]['name'])
+")
+          echo "Симулятор: $DEVICE ($UDID)"
+          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
 
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
@@ -68,7 +80,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Экраны iPhone 16
+          name: Экраны приложения
           path: FamilyTasks.swiftpm/shots/*.png
           if-no-files-found: warn
 
