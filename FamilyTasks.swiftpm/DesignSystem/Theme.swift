@@ -140,9 +140,11 @@ enum Theme {
             "Figtree-Bold"
         ]
 
+        // Только Bundle.main: в App Playground ресурсы попадают прямо в бандл
+        // приложения, а синтезированного Bundle.module у такого таргета нет —
+        // первая сборка в CI упала именно на нём.
         for name in names {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf")
-                ?? Bundle.module.url(forResource: name, withExtension: "ttf") else {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else {
                 continue
             }
             CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
