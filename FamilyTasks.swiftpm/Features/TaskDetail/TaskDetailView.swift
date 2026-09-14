@@ -46,6 +46,11 @@ struct TaskDetailView: View {
                     }
                 }
 
+                LabeledContent("Кому видна") {
+                    Label(task.visibility.title, systemImage: task.isHiddenFromChildren ? "lock.fill" : "person.2")
+                        .foregroundStyle(task.isHiddenFromChildren ? Theme.accent : Theme.textSecondary)
+                }
+
                 LabeledContent("Исполнитель") {
                     Text(task.assigneeName ?? "Не назначен")
                         .foregroundStyle(task.assigneeName == nil ? .secondary : .primary)

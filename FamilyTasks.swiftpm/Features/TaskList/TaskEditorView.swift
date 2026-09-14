@@ -28,6 +28,7 @@ struct TaskEditorView: View {
     @State private var priority: TaskPriority
     @State private var status: TaskStatus
     @State private var assigneeID: UUID?
+    @State private var visibility: Visibility
 
     @State private var members: [UserDTO] = []
     @State private var isSaving = false
@@ -55,6 +56,7 @@ struct TaskEditorView: View {
             _priority = State(initialValue: .medium)
             _status = State(initialValue: .todo)
             _assigneeID = State(initialValue: appEnvironment.session.currentUser?.id)
+            _visibility = State(initialValue: .family)
             self.isEditing = false
 
         case .edit(let draft, let currentStatus):
@@ -65,6 +67,7 @@ struct TaskEditorView: View {
             _priority = State(initialValue: draft.priority)
             _status = State(initialValue: currentStatus)
             _assigneeID = State(initialValue: draft.assigneeId)
+            _visibility = State(initialValue: draft.visibility)
             self.isEditing = true
         }
     }
@@ -103,6 +106,21 @@ struct TaskEditorView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                }
+
+                if isParent {
+                    Section {
+                        Picker("Кому видна", selection: $visibility) {
+                            ForEach(Visibility.allCases) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    } header: {
+                        Text("Кому видна")
+                    } footer: {
+                        Text(visibilityHint)
+                    }
                 }
 
                 if isEditing {
@@ -146,8 +164,32 @@ struct TaskEditorView: View {
         }
     }
 
+    /// Переключатель видят только родители: ребёнку сервер вернёт 403,
+    /// а скрытые задачи ему и так не приходят — выбирать нечего.
+    private var isParent: Bool {
+        appEnvironment.session.currentUser?.role == .parent
+    }
+
+    private var visibilityHint: String {
+        guard visibility == .parents else {
+            return "Задачу увидят все члены семьи."
+        }
+        if assigneeIsChild {
+            return "Скрытую задачу нельзя назначить ребёнку — он её не увидит."
+        }
+        return "Дети не увидят её в списке и не смогут открыть напрямую."
+    }
+
+    /// Тот же запрет, что и на сервере: иначе задача висела бы
+    /// на человеке, которому её не показывают.
+    private var assigneeIsChild: Bool {
+        guard let assigneeID else { return false }
+        return members.first { $0.id == assigneeID }?.role == .child
+    }
+
     private var isValid: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if visibility == .parents && assigneeIsChild { return false }
+        return !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private func save() {
@@ -158,7 +200,8 @@ struct TaskEditorView: View {
             notes: trimmedNotes.isEmpty ? nil : trimmedNotes,
             dueDate: hasDueDate ? dueDate : nil,
             priority: priority,
-            assigneeId: assigneeID
+            assigneeId: assigneeID,
+            visibility: visibility
         )
 
         isSaving = true

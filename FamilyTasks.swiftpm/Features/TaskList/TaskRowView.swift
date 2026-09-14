@@ -38,6 +38,13 @@ struct TaskRowView: View {
                         Label(task.status.title, systemImage: task.status.systemImage)
                             .foregroundStyle(task.status.tint)
                     }
+
+                    // Ребёнку такая задача не приходит вовсе — плашка нужна
+                    // родителю, чтобы он помнил, что спрятал её.
+                    if task.isHiddenFromChildren {
+                        Label(Visibility.parents.shortTitle, systemImage: "lock.fill")
+                            .foregroundStyle(Theme.accent)
+                    }
                 }
                 .font(Theme.body(12, relativeTo: .caption))
                 .labelStyle(.titleAndIcon)

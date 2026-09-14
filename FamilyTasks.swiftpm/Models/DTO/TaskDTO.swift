@@ -51,6 +51,8 @@ struct TaskDTO: Codable, Sendable, Equatable, Identifiable {
     var dueDate: Date?
     var priority: TaskPriority
     var status: TaskStatus
+    /// Кому видна. Тип общий с заметками — объявлен в NoteDTO.swift.
+    var visibility: Visibility
     var assigneeId: UUID?
     var assigneeName: String?
     var createdById: UUID?
@@ -65,8 +67,16 @@ struct TaskDraft: Codable, Sendable, Equatable {
     var dueDate: Date?
     var priority: TaskPriority
     var assigneeId: UUID?
+    var visibility: Visibility
 
-    static let empty = TaskDraft(title: "", notes: nil, dueDate: nil, priority: .medium, assigneeId: nil)
+    static let empty = TaskDraft(
+        title: "",
+        notes: nil,
+        dueDate: nil,
+        priority: .medium,
+        assigneeId: nil,
+        visibility: .family
+    )
 }
 
 /// Тело PUT /tasks/{id}. Полная замена — никакой неоднозначности «null = не менять».
@@ -76,6 +86,7 @@ struct TaskUpdateDTO: Codable, Sendable, Equatable {
     var dueDate: Date?
     var priority: TaskPriority
     var status: TaskStatus
+    var visibility: Visibility
     var assigneeId: UUID?
 
     init(draft: TaskDraft, status: TaskStatus) {
@@ -84,6 +95,7 @@ struct TaskUpdateDTO: Codable, Sendable, Equatable {
         self.dueDate = draft.dueDate
         self.priority = draft.priority
         self.status = status
+        self.visibility = draft.visibility
         self.assigneeId = draft.assigneeId
     }
 }

@@ -77,11 +77,13 @@ actor MockBackend {
 
     func fetchTasks() async throws -> [TaskDTO] {
         try await wait()
-        return tasks
+        // Повторяем правило сервера: ребёнку скрытые задачи не отдаются вовсе.
+        return tasks.filter { currentUser.role == .parent || $0.visibility == .family }
     }
 
     func createTask(_ draft: TaskDraft) async throws -> TaskDTO {
         try await wait()
+        try ensureVisibilityAllowed(draft)
         let now = Date()
         let dto = TaskDTO(
             id: UUID(),
@@ -90,6 +92,7 @@ actor MockBackend {
             dueDate: draft.dueDate,
             priority: draft.priority,
             status: .todo,
+            visibility: draft.visibility,
             assigneeId: draft.assigneeId,
             assigneeName: name(for: draft.assigneeId),
             createdById: currentUser.id,
@@ -105,12 +108,14 @@ actor MockBackend {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else {
             throw APIError.notFound
         }
+        try ensureVisibilityAllowed(draft)
         var dto = tasks[index]
         dto.title = draft.title
         dto.notes = draft.notes
         dto.dueDate = draft.dueDate
         dto.priority = draft.priority
         dto.status = status
+        dto.visibility = draft.visibility
         dto.assigneeId = draft.assigneeId
         dto.assigneeName = name(for: draft.assigneeId)
         dto.updatedAt = Date()
@@ -135,6 +140,20 @@ actor MockBackend {
         try? await Task.sleep(for: latency)
         if shouldFail {
             throw APIError.server(status: 503, message: "Сервер недоступен (имитация).")
+        }
+    }
+
+    /// Те же два запрета, что и на бэкенде: прятать может только родитель,
+    /// а скрытую задачу нельзя повесить на ребёнка — он её не увидит.
+    private func ensureVisibilityAllowed(_ draft: TaskDraft) throws {
+        guard draft.visibility == .parents else { return }
+
+        if currentUser.role != .parent {
+            throw APIError.forbidden
+        }
+        if let assigneeId = draft.assigneeId,
+           members.first(where: { $0.id == assigneeId })?.role == .child {
+            throw APIError.validation(message: "Задачу, скрытую от детей, нельзя назначить ребёнку.")
         }
     }
 
@@ -164,35 +183,35 @@ actor MockBackend {
             TaskDTO(
                 id: UUID(), title: "Забрать Соню с тренировки",
                 notes: "Секция заканчивается в 18:30, вход со двора.",
-                dueDate: date(0, hour: 18), priority: .high, status: .todo,
+                dueDate: date(0, hour: 18), priority: .high, status: .todo, visibility: .family,
                 assigneeId: UserDTO.previewParent.id, assigneeName: UserDTO.previewParent.name,
                 createdById: UserDTO.previewPartner.id, createdAt: now, updatedAt: now
             ),
             TaskDTO(
                 id: UUID(), title: "Купить продукты на неделю",
                 notes: "Молоко, хлеб, овощи, корм коту.",
-                dueDate: date(0, hour: 20), priority: .medium, status: .inProgress,
+                dueDate: date(0, hour: 20), priority: .medium, status: .inProgress, visibility: .family,
                 assigneeId: UserDTO.previewPartner.id, assigneeName: UserDTO.previewPartner.name,
                 createdById: UserDTO.previewParent.id, createdAt: now, updatedAt: now
             ),
             TaskDTO(
                 id: UUID(), title: "Сделать домашку по математике",
                 notes: nil,
-                dueDate: date(1, hour: 19), priority: .high, status: .todo,
+                dueDate: date(1, hour: 19), priority: .high, status: .todo, visibility: .family,
                 assigneeId: UserDTO.previewChild.id, assigneeName: UserDTO.previewChild.name,
                 createdById: UserDTO.previewPartner.id, createdAt: now, updatedAt: now
             ),
             TaskDTO(
                 id: UUID(), title: "Записать машину на ТО",
                 notes: "Сервис на Ленина, спросить про замену колодок.",
-                dueDate: date(4, hour: 12), priority: .low, status: .todo,
+                dueDate: date(4, hour: 12), priority: .low, status: .todo, visibility: .parents,
                 assigneeId: UserDTO.previewParent.id, assigneeName: UserDTO.previewParent.name,
                 createdById: UserDTO.previewParent.id, createdAt: now, updatedAt: now
             ),
             TaskDTO(
                 id: UUID(), title: "Оплатить коммуналку",
                 notes: nil,
-                dueDate: date(-2, hour: 10), priority: .medium, status: .done,
+                dueDate: date(-2, hour: 10), priority: .medium, status: .done, visibility: .family,
                 assigneeId: UserDTO.previewPartner.id, assigneeName: UserDTO.previewPartner.name,
                 createdById: UserDTO.previewPartner.id, createdAt: now, updatedAt: now
             )

@@ -22,6 +22,7 @@ final class TaskItem {
     /// SwiftData хранит примитив, наружу отдаём типизированный enum.
     var priorityRaw: String
     var statusRaw: String
+    var visibilityRaw: String
 
     init(dto: TaskDTO) {
         self.remoteID = dto.id
@@ -35,6 +36,7 @@ final class TaskItem {
         self.updatedAt = dto.updatedAt
         self.priorityRaw = dto.priority.rawValue
         self.statusRaw = dto.status.rawValue
+        self.visibilityRaw = dto.visibility.rawValue
     }
 
     // MARK: - Типизированный доступ
@@ -48,6 +50,15 @@ final class TaskItem {
         get { TaskStatus(rawValue: statusRaw) ?? .todo }
         set { statusRaw = newValue.rawValue }
     }
+
+    var visibility: Visibility {
+        get { Visibility(rawValue: visibilityRaw) ?? .family }
+        set { visibilityRaw = newValue.rawValue }
+    }
+
+    /// Сервер и так не отдаёт скрытое ребёнку — плашка нужна родителю,
+    /// чтобы он помнил, что запись спрятал.
+    var isHiddenFromChildren: Bool { visibility == .parents }
 
     var isCompleted: Bool { status == .done }
 
@@ -74,6 +85,7 @@ final class TaskItem {
         updatedAt = dto.updatedAt
         priorityRaw = dto.priority.rawValue
         statusRaw = dto.status.rawValue
+        visibilityRaw = dto.visibility.rawValue
     }
 
     var draft: TaskDraft {
@@ -82,7 +94,8 @@ final class TaskItem {
             notes: notes.isEmpty ? nil : notes,
             dueDate: dueDate,
             priority: priority,
-            assigneeId: assigneeID
+            assigneeId: assigneeID,
+            visibility: visibility
         )
     }
 }
