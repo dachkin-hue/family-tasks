@@ -30,6 +30,18 @@ final class AppSession {
 
     /// Восстановление сессии при холодном старте.
     func restore() async {
+        // Съёмка скриншотов в CI: нужный экран задаётся аргументом запуска,
+        // иначе кадр зависел бы от того, что осталось в Keychain на раннере.
+        if let launch = LaunchScreen.requested {
+            if launch.requiresSignedInUser {
+                state = .signedIn((try? await auth.currentUser()) ?? .previewParent)
+            } else {
+                await tokenStorage.clear()
+                state = .signedOut
+            }
+            return
+        }
+
         guard await tokenStorage.current() != nil else {
             state = .signedOut
             return

@@ -23,12 +23,54 @@ jobs:
         working-directory: FamilyTasks.swiftpm
         # CODE_SIGNING_ALLOWED=NO — нам нужна только компиляция,
         # сертификаты на этом этапе не требуются.
+        # derivedDataPath задан, чтобы следующий шаг нашёл собранный .app.
         run: |
           set -o pipefail
           xcodebuild build \
             -scheme FamilyTasks \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -derivedDataPath dd \
             CODE_SIGNING_ALLOWED=NO
+
+      - name: Скриншоты из симулятора
+        working-directory: FamilyTasks.swiftpm
+        # Симулятором без UI-тестов нельзя «потыкать», зато можно запустить
+        # приложение несколько раз с разными аргументами и снять по кадру.
+        run: |
+          set -eo pipefail
+          mkdir -p shots
+
+          APP=$(find dd/Build/Products -maxdepth 3 -name "FamilyTasks.app" | head -1)
+          echo "Приложение: $APP"
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+          echo "Bundle id: $BUNDLE_ID"
+
+          UDID=$(xcrun simctl list devices available --json \
+            | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for v in d.values() for x in v if x['name']=='iPhone 16'))")
+
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" "$APP"
+
+          for SCREEN in login tasks notes family profile; do
+            xcrun simctl terminate "$UDID" "$BUNDLE_ID" 2>/dev/null || true
+            xcrun simctl launch "$UDID" "$BUNDLE_ID" -screen "$SCREEN"
+            # Пауза на восстановление сессии и первую загрузку из мока.
+            sleep 5
+            xcrun simctl io "$UDID" screenshot "shots/$SCREEN.png"
+            echo "снято: $SCREEN"
+          done
+
+          xcrun simctl shutdown "$UDID"
+
+      - name: Выложить скриншоты
+        # if: always() — кадры полезны и когда что-то упало на середине.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Экраны iPhone 16
+          path: FamilyTasks.swiftpm/shots/*.png
+          if-no-files-found: warn
 
   backend:
     name: Тесты бэкенда
