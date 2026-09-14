@@ -48,17 +48,12 @@ jobs:
           echo "Bundle id: $BUNDLE_ID"
 
           # Модель не фиксируем: набор симуляторов на раннере со временем меняется.
-          # Берём первый доступный iPhone и запоминаем его имя для названия артефакта.
-          read UDID DEVICE < <(xcrun simctl list devices available --json | python3 -c "
-import json, sys
-devices = json.load(sys.stdin)['devices']
-phones = [d for runtime in devices.values() for d in runtime if d['name'].startswith('iPhone')]
-if not phones:
-    sys.exit('Симуляторов iPhone на раннере не нашлось')
-print(phones[0]['udid'], phones[0]['name'])
-")
+          # Берём первый доступный iPhone. Python-однострочником, а не блоком:
+          # многострочный скрипт с нулевым отступом обрывает YAML-блок run.
+          PICKED=$(xcrun simctl list devices available --json | python3 -c "import json,sys; ds=json.load(sys.stdin)['devices']; ps=[d for r in ds.values() for d in r if d['name'].startswith('iPhone')]; print(ps[0]['udid'] + ' ' + ps[0]['name']) if ps else sys.exit('Симуляторов iPhone на раннере не нашлось')")
+          UDID="${PICKED%% *}"
+          DEVICE="${PICKED#* }"
           echo "Симулятор: $DEVICE ($UDID)"
-          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
 
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
