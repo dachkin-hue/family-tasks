@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+    # Иначе коммит со скриншотами запускал бы сборку заново, и так по кругу.
+    paths-ignore:
+      - 'docs/screenshots/**'
   pull_request:
   workflow_dispatch:
 
@@ -12,6 +15,10 @@ jobs:
     # macOS-раннер — единственное место, где существует iOS SDK.
     # Минуты macOS списываются с коэффициентом x10, поэтому джоб один и короткий.
     runs-on: macos-latest
+
+    # Нужно, чтобы вернуть снятые кадры обратно в репозиторий.
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +61,9 @@ jobs:
           UDID="${PICKED%% *}"
           DEVICE="${PICKED#* }"
           echo "Симулятор: $DEVICE ($UDID)"
+          # У каждого шага свой процесс — имя устройства пробрасываем явно,
+          # оно понадобится в сообщении коммита со скриншотами.
+          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
 
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
@@ -69,6 +79,27 @@ jobs:
           done
 
           xcrun simctl shutdown "$UDID"
+
+      - name: Положить скриншоты в репозиторий
+        # Артефакт сборки виден только тому, кто авторизован на GitHub,
+        # и живёт ограниченное время. В репозитории кадры доступны всем,
+        # открываются прямо в вебе и не требуют скачивания архива.
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          set -eo pipefail
+          mkdir -p docs/screenshots
+          cp FamilyTasks.swiftpm/shots/*.png docs/screenshots/
+
+          if git diff --quiet -- docs/screenshots; then
+            echo "Кадры не изменились — коммит не нужен."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots
+          git commit -m "Скриншоты симулятора: $DEVICE [skip ci]"
+          git push
 
       - name: Выложить скриншоты
         # if: always() — кадры полезны и когда что-то упало на середине.
